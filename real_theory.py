@@ -71,44 +71,6 @@ def k_theory(degrees,k_ub,max_iter=1000,tol=1e-2):
     return k_theory    
 
 
-def k_est_th(degrees,k_ub,max_iter=1000,tol=1e-4):
-    deg,count = np.unique(degrees,return_counts=True)
-    imax = round(deg[-1])
-    P = np.zeros(imax + 1)
-    count_norm = count / np.sum(count)
-    for i,j in zip(deg,count_norm):
-        P[round(i)] = j
-    pass
-    z1 = sum([i * p for i,p in enumerate(P)])
-    R_arr = np.zeros(k_ub+10)
-    
-    for k in np.arange(1,k_ub+10+1):
-        R = 0
-        for iter_ in range(max_iter):
-            R_new = 0.0     
-            for n in range(0, k - 1):  # n = 0 to k-2
-                inner = 0.0
-                for i in range(n, imax):
-                    inner += (i + 1) * P[i + 1] / z1 * comb(i, n) * (R ** (i - n)) * ((1 - R) ** n)
-                R_new += inner
-            
-            if abs(R_new - R) < tol:
-                # print(k,iter_,R_new,R)
-                break
-                
-            if (iter_ + 1) == max_iter:
-                # print(R_new,R)
-                R = -1
-                raise RuntimeError
-            R = R_new
-        R_arr[k-1] = R
-    try:
-        kc = np.where(abs(R_arr - 1)<1e-4)[0][0]
-    except:
-        kc = -1
-    pass
-    return kc
-
 def k_prun(A_csr):
     w_seq = np.sum(A_csr,axis=1)    
     k_ = 1
