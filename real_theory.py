@@ -9,7 +9,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.special import comb
 from scipy.special import gammaln
-# from math import comb
+
 def k_theory(degrees,k_ub,max_iter=1000,tol=1e-2):
     deg_,count_ = np.unique(degrees,return_counts=True)
     imax = round(deg_[-1])
@@ -20,7 +20,7 @@ def k_theory(degrees,k_ub,max_iter=1000,tol=1e-2):
     z1 = sum([i * p for i,p in enumerate(P)])
     
     k_bound = [0,k_ub]
-    # R_current = 0
+    
     while True:
         k_current = np.sum(k_bound) // 2 
         R_iter = 1e-5
@@ -55,64 +55,14 @@ def k_theory(degrees,k_ub,max_iter=1000,tol=1e-2):
                 break
             if t+1 == max_iter:
                 pass
-            # R_iter = R_new
             R_iter =  np.clip(R_new, 1e-5, 1 - 1e-5)
             
         
-        # R_current = R_iter
-        #  二分直到确定这个数
         if k_bound[1]-k_bound[0] == 1:
             k_theory = k_bound[0]
             break
         
-        # 0替换lb，1替换ub
-        if abs(R_iter-1)<tol:
-            k_bound[1] = k_current
-        else:
-            k_bound[0] = k_current
-            
-    return k_theory    
-
-def k_theory_simp(degrees,k_ub,max_iter=1000,tol=1e-2):
-    deg_,count_ = np.unique(degrees,return_counts=True)
-    imax = round(deg_[-1])
-    P = np.zeros(imax + 1)
-    count_norm = count_ / np.sum(count_)
-    for i,j in zip(deg_,count_norm):
-        P[round(i)] = j
-    z1 = sum([i * p for i,p in enumerate(P)])
-    
-    k_bound = [0,k_ub]
-    # R_current = 0
-    while True:
-        k_current = np.sum(k_bound) // 2 
-        R_iter = 0
-        for t in range(max_iter):
-            R_new = 0
-            for n in range(0, k_current - 1):  # n = 0 to k-2
-                inner = 0.0
-                for i in range(n, imax):
-                    if P[i+1] != 0:
-                        inner += (i + 1) * P[i + 1] / z1 * comb(i, n) * (R_iter ** (i - n)) * ((1 - R_iter) ** n)
-                    if not np.isfinite(inner):
-                        pass
-                R_new += inner
-
-            if abs(R_new-R_iter)<tol:
-                break
-            if t+1 == max_iter:
-                pass
-            # R_iter = R_new
-            R_iter =  np.clip(R_new, 1e-5, 1 - 1e-5)
-            
         
-        # R_current = R_iter
-        #  二分直到确定这个数
-        if k_bound[1]-k_bound[0] == 1:
-            k_theory = k_bound[0]
-            break
-        
-        # 0替换lb，1替换ub
         if abs(R_iter-1)<tol:
             k_bound[1] = k_current
         else:
@@ -218,22 +168,21 @@ if __name__ == "__main__":
                 degree_seq = np.array(np.sum(A_csr_rand,axis=1),dtype=int).flatten()
                 end_construct = time.perf_counter()
 
-                # start_prun = time.perf_counter()
+                start_prun = time.perf_counter()
                 kc = k_prun(A_csr_rand)
-                # end_prun = time.perf_counter()
+                end_prun = time.perf_counter()
                 
                 
                 start_R = time.perf_counter()
-                # kt = k_theory(degree_seq,np.max(degree_seq))
-                kt = k_theory_simp(degree_seq,np.max(degree_seq))
+                kt = k_theory(degree_seq,np.max(degree_seq))
                 end_R = time.perf_counter()
                     
-                # k_results = [kc,kt,end_prun-start_prun,end_R-start_R,end_construct-start_construct]
-                print(kc,kt,dataset,file,round(end_R-start_R,6))
-                # k_savepath = ['./output',f'realworld_R',dataset,'k',file]
-                # if not os.path.exists('/'.join(k_savepath[:-1])):
-                #     os.makedirs('/'.join(k_savepath[:-1]))            
-                # np.savetxt('/'.join(k_savepath),k_results,delimiter=',',fmt='%.8f')            
+                k_results = [kc,kt,end_prun-start_prun,end_R-start_R,end_construct-start_construct]
+                
+                k_savepath = ['./output',f'realworld_R',dataset,'k',file]
+                if not os.path.exists('/'.join(k_savepath[:-1])):
+                    os.makedirs('/'.join(k_savepath[:-1]))            
+                np.savetxt('/'.join(k_savepath),k_results,delimiter=',',fmt='%.8f')            
                     
                 current_path.pop()
         except:

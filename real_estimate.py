@@ -9,7 +9,7 @@ import networkx as nx
 import numpy as np
 from scipy.sparse import csr_matrix
 
-APPLY_DEGREE_CUTOFF = True
+APPLY_DEGREE_CUTOFF = False
 
 def k_seq_estimate(seq):
     deg_,count_ = np.unique(seq,return_counts=True)
@@ -39,8 +39,6 @@ def k_seq_estimate(seq):
             
     kh = np.max(estimates)
     wh = np.argmax(np.array(estimates))
-
-
     return kh,wh
 
 def edgelist_to_adj_csr(arr,N):
@@ -70,16 +68,16 @@ if __name__ == "__main__":
                         
             A_csr = edgelist_to_adj_csr(edges,N)            
             degrees = np.array(np.sum(A_csr,axis=1),dtype=int).flatten()
-            if APPLY_DEGREE_CUTOFF:
-                volume = np.sum(degrees)
-                degrees_cutoff = np.zeros(len(degrees))
-                for w_id,w in enumerate(degrees):
-                    w_links = w * degrees / volume
-                    w_e = np.sum(w_links)
-                    w_links[w_links>1] = 1
-                    w_c = np.sum(w_links)
-                    degrees_cutoff[w_id] = round(w_c)
-                degrees = degrees_cutoff
+            # if APPLY_DEGREE_CUTOFF:
+            #     volume = np.sum(degrees)
+            #     degrees_cutoff = np.zeros(len(degrees))
+            #     for w_id,w in enumerate(degrees):
+            #         w_links = w * degrees / volume
+            #         w_e = np.sum(w_links)
+            #         w_links[w_links>1] = 1
+            #         w_c = np.sum(w_links)
+            #         degrees_cutoff[w_id] = round(w_c)
+            #     degrees = degrees_cutoff
             try:                
                 start_ = time.perf_counter()
                 kh_,wh_ = k_seq_estimate(degrees)
